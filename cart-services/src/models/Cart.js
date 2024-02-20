@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 
 const ProductSchema = new mongoose.Schema({
     imageUrl: { type: String },
-    stock: { type: String, required: true },
-    price: { type: String, required: true },
+    stock: { type: Number, required: true },
+    price: { type: Number, required: true },
 });
 
 const CartItemSchema = new mongoose.Schema({
