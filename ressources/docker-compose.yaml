@@ -1,0 +1,31 @@
+version: "3"
+services:
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    networks:
+      - elasticnet
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.1
+    ports:
+      - "5601:5601"
+    networks:
+      - elasticnet
+    depends_on:
+      - elasticsearch
+volumes:
+  esdata1:
+    driver: local
+networks:
+  elasticnet:
+    driver: bridge
