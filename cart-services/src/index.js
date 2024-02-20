@@ -4,7 +4,7 @@ const app = express();
 const mongoose = require("mongoose");
 
 // Route du crud simple du panier
-// const cartRoutes = require("./routes/cartRoutes");
+const cartRoutes = require("./routes/cartRoutes");
 
 app.use(express.json());
 
@@ -15,8 +15,7 @@ mongoose
   .then(() => console.log("Connecté à mongo"))
   .catch((err) => console.log(err));
 
-// app.use("/cart", cartRoutes);
-
+app.use("/cart", cartRoutes);
 
 
 app.listen(PORT, ()=> {
