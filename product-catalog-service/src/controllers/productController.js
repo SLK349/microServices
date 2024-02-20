@@ -1,5 +1,7 @@
 const Product = require("../models/Product");
 const esClient = require("../config/elaticsearch");
+const { publishToQueue, connectRabbitMQ } = require("../services/Rabbit");
+
 exports.getAllProducts = async (req, res) => {
   try {
     res.json(await Product.find());
@@ -12,6 +14,7 @@ exports.createProduct = async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
+    await publishToQueue("productQueue", product);
     res.status(201).json(product);
   } catch (err) {
     res.status(400).send(err.message);
@@ -69,3 +72,43 @@ exports.searchProducts = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+
+async function updateProductStock() {
+  const { channel } = await connectRabbitMQ();
+  const queue = "orderQueue";
+
+  channel.assertQueue(queue, {
+    durable: true,
+  });
+
+  console.log(`En attente de messages dans ${queue}.`);
+
+  channel.consume(queue, async (msg) => {
+    if (msg.content) {
+      const messageContent = JSON.parse(msg.content.toString());
+      console.log(" [x] Reçu :", msg.content.toString());
+
+      messageContent.items.forEach(async (item) => {
+        console.log(item);
+        const productId = item.product._id;
+        const quantityPurchased = item.quantity;
+
+        await updateStock(productId, -quantityPurchased);
+      });
+      channel.ack(msg);
+    }
+  });
+}
+
+async function updateStock(productId, quantityChange) {
+  const product = await Product.findById(productId);
+  if (product) {
+    product.stock += quantityChange;
+    await product.save();
+    console.log(`Stock mis à jour pour le produit ${productId}. Nouveau stock: ${product.stock}`);
+  } else {
+    console.log(`Produit ${productId} non trouvé`);
+  }
+}
+
+updateProductStock();

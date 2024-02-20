@@ -47,6 +47,8 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - elasticnet
 
 volumes:
   esdata1:
