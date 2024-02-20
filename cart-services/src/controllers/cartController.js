@@ -1,4 +1,5 @@
 const Cart = require("../models/Cart");
+const { publishToQueue } = require("../services/Rabbit");
 
 exports.getAllCarts = async (req, res) => {
   try {
@@ -11,7 +12,11 @@ exports.getAllCarts = async (req, res) => {
 exports.createCart = async (req, res) => {
   try {
     const cart = new Cart(req.body);
+    console.log(cart);
     await cart.save();
+
+    await publishToQueue("orderQueue", cart);
+
     res.status(201).json(cart);
   } catch (err) {
     res.status(400).send(err.message);
