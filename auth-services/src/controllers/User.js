@@ -5,6 +5,16 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-password');
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -39,6 +49,46 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    // const {  username } = req.body;
+    const newUsername = req.body.username;
+    console.log(req.body);
+
+
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      return res.status(404).json({ message: "Utilisateur non trouvé." });
+    }
+    console.log('currentUser username', currentUser.username);
+
+    const usernameTaken = await User.findOne({ username: newUsername });
+    if (usernameTaken) {
+      return res.status(400).json({ message: "Le nouvel username est déjà pris." });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { username: newUsername },
+        { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Utilisateur non trouvé." });
+    }
+
+    // Publier un message pour notifier les autres services de la mise à jour
+    await publishToQueue("userUpdatedQueue", { oldUsername: currentUser.username, username: newUsername });
+
+    res.status(200).json({ message: "Username mis à jour avec succès.", user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 
 const verifValidator = (req, res) => {
   body("username").isString();

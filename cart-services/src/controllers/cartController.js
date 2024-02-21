@@ -1,4 +1,4 @@
-const { Product, Cart } = require("../models/Cart");
+const { Product, Cart, User } = require("../models/Cart");
 const { connectRabbitMQ, publishToQueue } = require("../services/Rabbit");
 
 exports.getAllCarts = async (req, res) => {
@@ -56,6 +56,14 @@ exports.deleteCart = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
   try {
     res.json(await Product.find());
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    res.json(await User.find());
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -126,7 +134,6 @@ consumeDeleteProduct();
 
 
 const { connectToQueue, consumeMessage } = require("../services/Rabbit");
-const { User } = require("../models/Cart");
 
 async function consumeUser() {
   const { channel } = await connectRabbitMQ();
@@ -150,3 +157,39 @@ async function consumeUser() {
 }
 
 consumeUser();
+
+
+async function updateUser() {
+  const { channel } = await connectRabbitMQ();
+  const queue = 'userUpdatedQueue';
+
+  await channel.assertQueue(queue, { durable: true });
+
+  console.log(`En attente de messages dans ${queue}`);
+
+  channel.consume(queue, async (msg) => {
+    if (msg !== null) {
+      console.log(msg.content.toString());
+      const { oldUsername, username } = JSON.parse(msg.content.toString());
+      console.log(`Mise à jour demandée de ${oldUsername} à ${username}`);
+
+      try {
+        const result = await User.findOneAndUpdate(
+            { username: oldUsername },
+            { $set: { username: username } },
+            { returnDocument: 'after' }
+        );
+
+        if (result) {
+          console.log(`Utilisateur mis à jour avec succès : ${result.value.username}`);
+        } else {
+          console.log(`Utilisateur non trouvé avec le username : ${oldUsername}`);
+        }
+        channel.ack(msg);
+      } catch (error) {
+        console.error(`Erreur lors de la mise à jour de l'username: ${error}`);
+      }
+    }
+  });
+}
+updateUser();
