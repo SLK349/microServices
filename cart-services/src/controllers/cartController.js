@@ -92,4 +92,33 @@ async function createOrUpdateProductInCartService(_id, productDetails) {
   await product.save();
   console.log(`Article mis à jour/créé dans le service panier : ${_id}`);
 }
+
 consumeProduct();
+
+async function consumeDeleteProduct() {
+  const { channel } = await connectRabbitMQ();
+  const queue = "deleteProductQueue";
+
+  await channel.assertQueue(queue, { durable: true });
+
+  channel.consume(queue, async (msg) => {
+    if (msg.content) {
+      const { _id } = JSON.parse(msg.content.toString());
+      console.log(`Demande de suppression reçue pour le produit : ${_id}`);
+
+      await deleteProductFromAllCarts(_id);
+      channel.ack(msg);
+    }
+  });
+}
+
+async function deleteProductFromAllCarts(_id) {
+  try {
+    await Product.findByIdAndDelete(_id);
+    console.log(`Produit ${_id} supprimé avec succès.`);
+  } catch (err) {
+    console.error(`Erreur lors de la suppression du produit ${_id} : ${err.message}`);
+  }
+}
+
+consumeDeleteProduct();
