@@ -32,6 +32,8 @@ exports.register = async (req, res) => {
     }
     const user = new User({ username, password: hashedPassword });
     await user.save();
+    await publishToQueue("userCreatedQueue", { username });
+
     res.status(201).send(`Utilisateur enregistré avec succès: $user`);
   } catch (err) {
     res.status(500).json({ message: err.message });

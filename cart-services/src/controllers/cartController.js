@@ -122,3 +122,31 @@ async function deleteProductFromAllCarts(_id) {
 }
 
 consumeDeleteProduct();
+
+
+
+const { connectToQueue, consumeMessage } = require("../services/Rabbit");
+const { User } = require("../models/Cart");
+
+async function consumeUser() {
+  const { channel } = await connectRabbitMQ();
+  const queue = "userCreatedQueue";
+
+  channel.assertQueue(queue, {
+    durable: true,
+  });
+
+  console.log(`En attente de messages dans ${queue}.`);
+
+  channel.consume(queue, async (message) => {
+    const { username } = JSON.parse(message.content.toString());
+
+    const userExists = await User.findOne({ username });
+    if (!userExists) {
+      await User.create({ username });
+      console.log(`Nouvel utilisateur créé dans le service panier: ${username}`);
+    }
+  })
+}
+
+consumeUser();
