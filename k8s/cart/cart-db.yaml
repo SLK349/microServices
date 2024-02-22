@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-cart
+spec:
+  serviceName: "mongo-cart"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-cart
+  template:
+    metadata:
+      labels:
+        app: mongo-cart
+    spec:
+      containers:
+        - name: mongo-cart
+          image: mongo:latest
+          ports:
+            - containerPort: 27019
+          volumeMounts:
+            - name: mongo-cart-storage
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-cart-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

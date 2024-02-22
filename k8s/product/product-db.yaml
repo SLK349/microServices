@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-product
+spec:
+  serviceName: "mongo-product"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-product
+  template:
+    metadata:
+      labels:
+        app: mongo-product
+    spec:
+      containers:
+        - name: mongo-product
+          image: mongo:latest
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-product-storage
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-product-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-cart
+spec:
+  selector:
+    app: mongo-cart
+  ports:
+    - protocol: TCP
+      port: 27019
+      targetPort: 27017
+  type: ClusterIP
