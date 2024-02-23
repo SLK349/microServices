@@ -10,7 +10,7 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.log(err));
 
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   console.log(err.stack);
   res.status(500).json({ message: err.message });
 });
