@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: auth-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: auth-service
@@ -14,6 +14,11 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: slk34/auth-image:latest
+          image: nawat1/microservices:auth-image
           ports:
             - containerPort: 3000
+          env:
+            - name: DB_HOST
+              value: mongo-auth
+            - name: DB_PORT
+              value: "27017"

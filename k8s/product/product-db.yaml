@@ -17,7 +17,7 @@ spec:
         - name: mongo-product
           image: mongo:latest
           ports:
-            - containerPort: 27017
+            - containerPort: 27018
           volumeMounts:
             - name: mongo-product-storage
               mountPath: /data/db

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: cart-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: cart-service
@@ -14,6 +14,11 @@ spec:
     spec:
       containers:
         - name: cart-service
-          image: slk34/cart-image:latest
+          image: nawat1/microservices:cart-image
           ports:
             - containerPort: 3002
+          env:
+          - name: DB_HOST
+            value: mongo-cart
+          - name: DB_PORT
+            value: "27019"

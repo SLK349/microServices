@@ -4,7 +4,7 @@ metadata:
   name: cart-service
 spec:
   selector:
-    app: cart-service
+    app: cart-dep
   ports:
     - protocol: TCP
       port: 80
