@@ -22,3 +22,19 @@ spec:
               value: mongo-auth
             - name: DB_PORT
               value: "27017"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+

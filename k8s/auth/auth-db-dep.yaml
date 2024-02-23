@@ -1,31 +1,45 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mongo-cart
+  name: mongo-auth
 spec:
-  serviceName: "mongo-cart"
+  serviceName: "mongo-auth"
   replicas: 1
   selector:
     matchLabels:
-      app: mongo-cart
+      app: mongo-auth
   template:
     metadata:
       labels:
-        app: mongo-cart
+        app: mongo-auth
     spec:
       containers:
-        - name: mongo-cart
+        - name: mongo-auth
           image: mongo:latest
           ports:
-            - containerPort: 27019
+            - containerPort: 27017
           volumeMounts:
-            - name: mongo-cart-storage
+            - name: mongo-auth-storage
               mountPath: /data/db
+
   volumeClaimTemplates:
     - metadata:
-        name: mongo-cart-storage
+        name: mongo-auth-storage
       spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
             storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-auth
+spec:
+  selector:
+    app: mongo-auth
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP
